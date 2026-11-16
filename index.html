@@ -1296,13 +1296,13 @@ function viewQuran(id){
   const i=QS.indexOf(s),pv=QS[i-1],nx=QS[i+1];
   return `<a class="back" href="#quran">← সব সূরা</a><h1>সূরা ${s.n}</h1><p class="muted">${s.m} · ${s.ty} · ${bd(s.ar.length)} আয়াত</p>
   <div class="row" style="margin:10px 0"><button type="button" class="btn" id="qplaybtn" data-act="qplay" data-id="${s.id}">▶ পুরো সূরা শুনি</button><button type="button" class="btn ghost" data-act="qstop">থামাই</button></div>
-  ${s.ar.map((l,k)=>`<section class="card ay" id="ay${k}" style="margin-bottom:10px"><div class="row sp"><span class="st">${bd(k+1)}</span><button type="button" class="say" data-act="say" data-t="${l}" aria-label="আয়াত ${bd(k+1)} শুনুন">${ICON_SPK}</button></div>
+  ${s.ar.map((l,k)=>`<section class="card ay" id="ay${k}" style="margin-bottom:10px"><div class="row sp"><span class="st">${bd(k+1)}</span><button type="button" class="say" data-act="qay" data-id="${s.id}" data-k="${k}" aria-label="আয়াত ${bd(k+1)} শুনুন">${ICON_SPK}</button></div>
   <p class="ar" lang="ar" dir="rtl" style="font-size:1.9em;line-height:2.1;margin:6px 0">${l}</p>
   <p class="tr" style="font-weight:600">${s.tr[k]}</p><p class="muted" style="margin-top:4px">${s.mn[k]}</p></section>`).join('')}
   <p class="hint2">ডিভাইসের আরবি ভয়েসে ধীর গতিতে শোনানো হয়; এটি কোনো ক্বারীর রেকর্ড করা তেলাওয়াত নয়।</p>
   <div class="row sp" style="margin-top:12px">${pv?`<a class="btn ghost sm" href="#quran-${pv.id}">← ${pv.n}</a>`:'<span></span>'}${nx?`<a class="btn ghost sm" href="#quran-${nx.id}">${nx.n} →</a>`:''}</div>`;
 }
-Object.assign(ACT,{qplay:t=>{const s=QS.find(x=>x.id===t.dataset.id);if(s){qplay(s,0);t.textContent='▶ চলছে…'}},qstop:()=>{qstop();const b=document.getElementById('qplaybtn');if(b)b.textContent='▶ পুরো সূরা শুনি'}});
+Object.assign(ACT,{qay:t=>{const s=QS.find(x=>x.id===t.dataset.id),k=+t.dataset.k;if(!s)return;if(window.qAudio)window.qAudio(s,k,false);else speak(s.ar[k])},qplay:t=>{const s=QS.find(x=>x.id===t.dataset.id);if(s){qplay(s,0);t.textContent='▶ চলছে…'}},qstop:()=>{qstop();const b=document.getElementById('qplaybtn');if(b)b.textContent='▶ পুরো সূরা শুনি'}});
 window.addEventListener('hashchange',qstop);
 
 /* ---------- হোম: ক্যালেন্ডার দিয়ে শুরু ---------- */
@@ -1321,12 +1321,13 @@ viewHome=function(){
 };
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.0.0';
+const APP_VERSION='1.1.0';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
 async function fetchInfo(){
-  const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});
+  const base=(window.ARABI_CONFIG||{}).versionUrl||'version.json';
+  const r=await fetch(base+(base.indexOf('?')<0?'?':'&')+'t='+Date.now(),{cache:'no-store'});
   if(!r.ok)throw new Error('http '+r.status);
   return r.json();
 }
@@ -1349,6 +1350,8 @@ async function checkUpdate(manual){
   if(manual&&location.hash==='#progress')rerender(true);
 }
 async function applyUpdate(){
+  const apk=(window.ARABI_CONFIG||{}).apkUrl;
+  if(apk&&window.Capacitor){try{window.open(apk,'_blank')}catch(e){location.href=apk}return}
   try{localStorage.setItem('arabi-just-updated',(UPD.info&&UPD.info.version)||'')}catch(e){}
   try{if('serviceWorker' in navigator){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}}catch(e){}
   try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('arabi-shikhi-')).map(k=>caches.delete(k)))}}catch(e){}
@@ -1387,7 +1390,7 @@ getSample=async()=>{
   };
 };
 /* শুরু: সার্ভিস ওয়ার্কার + আপডেট যাচাই */
-if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!window.Capacitor){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 }
 try{
@@ -1398,6 +1401,79 @@ if(/^https?:$/.test(location.protocol)){
   setTimeout(()=>checkUpdate(false),2500);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-UPD.last>6*3600*1000)checkUpdate(false)});
 }
+
+/* ---------- ক্বারীর তেলাওয়াত (ইন্টারনেট থেকে) ---------- */
+const RECS=[
+ {id:'alafasy',n:'মিশারী আল-আফাসি',ea:'Alafasy_128kbps',isl:'ar.alafasy'},
+ {id:'husary',n:'মাহমুদ খলীল আল-হুসারী (ধীর, শেখার জন্য সেরা)',ea:'Husary_128kbps',isl:'ar.husary'},
+ {id:'sudais',n:'আবদুর রহমান আস-সুদাইস',ea:'Abdurrahmaan_As-Sudais_192kbps',isl:'ar.abdurrahmaansudais'},
+ {id:'basit',n:'আবদুল বাসিত আবদুস সামাদ (মুরাত্তাল)',ea:'Abdul_Basit_Murattal_192kbps',isl:'ar.abdulbasitmurattal'},
+ {id:'minshawi',n:'মুহাম্মদ সিদ্দীক আল-মিনশাবী (মুরাত্তাল)',ea:'Minshawy_Murattal_128kbps',isl:'ar.minshawi'}
+];
+/* কুরআনের ক্রমিক আয়াত নম্বর (দ্বিতীয় উৎসের জন্য): সূরা নম্বর -> প্রথম আয়াতের ক্রমিক নম্বর */
+const GSTART={1:1,108:6205,112:6222,113:6226,114:6231};
+let REC=(()=>{try{const v=localStorage.getItem('arabi-reciter');if(RECS.some(r=>r.id===v))return v}catch(e){}return 'alafasy'})();
+const recObj=()=>RECS.find(r=>r.id===REC)||RECS[0];
+const p3=n=>String(n).padStart(3,'0');
+function ayUrls(s,k){
+  const r=recObj(),u=[`https://everyayah.com/data/${r.ea}/${p3(s.no)}${p3(k+1)}.mp3`];
+  if(GSTART[s.no]!=null)u.push(`https://cdn.islamic.network/quran/audio/128/${r.isl}/${GSTART[s.no]+k}.mp3`);
+  return u;
+}
+const QA=new Audio();QA.preload='auto';let QTOK=null,QWARN=false;
+function qhl(k){
+  document.querySelectorAll('.ay.on').forEach(x=>x.classList.remove('on'));
+  if(k==null)return;const el=document.getElementById('ay'+k);
+  if(el){el.classList.add('on');try{el.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}}
+}
+function qreset(){const b=document.getElementById('qplaybtn');if(b)b.textContent='▶ পুরো সূরা শুনি'}
+function stopAll(){QTOK=null;try{QA.pause()}catch(e){}try{speechSynthesis.cancel()}catch(e){}qhl(null)}
+function playOne(s,k,tok){
+  return new Promise(res=>{
+    const urls=ayUrls(s,k);let i=0;
+    const fallback=()=>{
+      if(QTOK!==tok)return res();
+      if(!QWARN){QWARN=true;toast('ক্বারীর অডিও পাওয়া যায়নি (ইন্টারনেট দেখুন)। ডিভাইসের ভয়েসে শোনানো হচ্ছে।')}
+      if(!('speechSynthesis' in window))return res();
+      loadVoices();const v=VOICES.find(x=>/^ar/i.test(x.lang||'')),u=new SpeechSynthesisUtterance(s.ar[k]);
+      u.lang=v?v.lang:'ar-SA';if(v)u.voice=v;u.rate=.65;u.onend=()=>res();u.onerror=()=>res();
+      speechSynthesis.cancel();speechSynthesis.speak(u);
+    };
+    const tryNext=()=>{
+      if(QTOK!==tok)return res();
+      if(i>=urls.length)return fallback();
+      QA.onended=()=>res();
+      QA.onerror=()=>{if(QTOK===tok)tryNext();else res()};
+      QA.src=urls[i++];
+      const pr=QA.play();if(pr&&pr.catch)pr.catch(e=>{if(QTOK===tok&&!(e&&e.name==='AbortError'))tryNext()});
+    };
+    tryNext();
+  });
+}
+async function runAyat(s,from,all){
+  stopAll();const tok=QTOK={};
+  for(let k=from;k<s.ar.length;k++){
+    if(QTOK!==tok)return;
+    qhl(k);await playOne(s,k,tok);
+    if(!all)break;
+    if(QTOK!==tok)return;
+    await new Promise(r=>setTimeout(r,250));
+  }
+  if(QTOK===tok){QTOK=null;qhl(null);qreset()}
+}
+window.qAudio=(s,k,all)=>{runAyat(s,k,all)};
+qplay=function(s,from){QWARN=false;runAyat(s,from||0,true)};
+qstop=function(){stopAll();qreset()};
+window.addEventListener('hashchange',()=>{stopAll()});
+const _vq=viewQuran;
+viewQuran=function(id){
+  const h=_vq(id);if(!id||!QS.find(x=>x.id===id))return h;
+  const sel=`<div style="margin:8px 0"><label for="qrec" class="muted">ক্বারী</label><br><select id="qrec" style="font:inherit;padding:8px;border-radius:10px;border:1.5px solid var(--green);background:var(--card);color:var(--fg);max-width:100%">${RECS.map(r=>`<option value="${r.id}" ${r.id===REC?'selected':''}>${r.n}</option>`).join('')}</select></div>`;
+  return h.replace('<div class="row" style="margin:10px 0"><button type="button" class="btn" id="qplaybtn"',sel+'<div class="row" style="margin:10px 0"><button type="button" class="btn" id="qplaybtn"').replace('ডিভাইসের আরবি ভয়েসে ধীর গতিতে শোনানো হয়; এটি কোনো ক্বারীর রেকর্ড করা তেলাওয়াত নয়।','ক্বারীর তেলাওয়াত ইন্টারনেট থেকে চলে (EveryAyah ও Islamic Network)। ইন্টারনেট না থাকলে ডিভাইসের আরবি ভয়েসে শোনানো হয়।');
+};
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='qrec'){REC=e.target.value;try{localStorage.setItem('arabi-reciter',REC)}catch(x){}stopAll();qreset();toast('ক্বারী বদলানো হয়েছে')}
+});
 
 prefs();render();
 if('speechSynthesis' in window)try{speechSynthesis.getVoices()}catch(e){}
