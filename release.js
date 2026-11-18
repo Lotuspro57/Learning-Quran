@@ -10,5 +10,6 @@ const sub=(f,re,to)=>{const s=fs.readFileSync(f,'utf8');if(!re.test(s)){console.
 sub('index.html',/const APP_VERSION='[^']*'/,`const APP_VERSION='${ver}'`);
 sub('sw.js',/const VERSION='[^']*'/,`const VERSION='${ver}'`);
 const d=new Date(Date.now()+6*3600e3).toISOString().slice(0,10);
-fs.writeFileSync('version.json',JSON.stringify({version:ver,date:d,notes},null,2)+'\n');
+let old={};try{old=JSON.parse(fs.readFileSync('version.json','utf8'))}catch(e){}
+fs.writeFileSync('version.json',JSON.stringify({...old,version:ver,date:d,notes},null,2)+'\n');
 console.log('সংস্করণ '+ver+' প্রস্তুত। এখন: git add -A && git commit -m "v'+ver+'" && git push');
