@@ -2384,7 +2384,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.4.4';
+const APP_VERSION='1.4.5';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2697,6 +2697,35 @@ ACT.flip=()=>{
     b.innerHTML=F.flip?`<div class="bk">${c.b}</div>`:`${ar(c.f)}<div class="hint">ট্যাপ করে উল্টান</div>`;
   }catch(e){toast('উল্টাতে সমস্যা: '+(e&&e.message||e))}
 };
+
+/* ---------- উচ্চারণ শোনা: ফোনের ভয়েস না থাকলে অনলাইন ভয়েস; সেটিং থেকে চালু ---------- */
+let OVA=null;
+function onlineSpeak(t){
+  try{if(OVA){OVA.pause();OVA=null}}catch(e){}
+  const q=String(t||'').replace(/\s+/g,' ').trim().slice(0,190);if(!q)return;
+  const a=new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q='+encodeURIComponent(q));
+  OVA=a;a.onerror=()=>toast('অনলাইন ভয়েস চালানো যায়নি। ইন্টারনেট সংযোগ দেখুন।');
+  const p=a.play();if(p&&p.catch)p.catch(()=>toast('অনলাইন ভয়েস চালানো যায়নি। ইন্টারনেট সংযোগ দেখুন।'));
+}
+const _spk=speak;
+speak=function(t){
+  const noLocal=!NTTS&&!('speechSynthesis' in window);
+  if(S.voice==='online'||noLocal){onlineSpeak(t);return}
+  if(NTTS){nspeak(t,.7).catch(()=>onlineSpeak(t));return}
+  _spk(t);
+};
+const _vp2=viewProgress;
+viewProgress=function(){
+  const on=S.voice==='online';
+  return _vp2()+`<section class="blk"><div class="card"><b>উচ্চারণ শোনা</b>
+  <p class="muted" style="margin:6px 0 10px">অক্ষর ও শব্দের উচ্চারণ কোথা থেকে শুনবেন। ফোনে আরবি ভয়েস না থাকলে অনলাইন ভয়েস বেছে নিন (ইন্টারনেট লাগবে)।</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <button type="button" class="btn ${on?'ghost':''}" data-act="voice" data-v="auto">অটো (ফোনের ভয়েস)</button>
+    <button type="button" class="btn ${on?'':'ghost'}" data-act="voice" data-v="online">অনলাইন ভয়েস</button>
+  </div>
+  <button type="button" class="btn ghost sm" style="margin-top:10px" data-act="say" data-t="بِسْمِ ٱللَّهِ">পরীক্ষা করুন: بِسْمِ ٱللَّهِ</button></div></section>`;
+};
+Object.assign(ACT,{voice:t=>{S.voice=t.dataset.v;save();rerender();toast(S.voice==='online'?'অনলাইন ভয়েস চালু হয়েছে':'অটো ভয়েস চালু হয়েছে')}});
 
 prefs();render();
 if('speechSynthesis' in window)try{speechSynthesis.getVoices()}catch(e){}
