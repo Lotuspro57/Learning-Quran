@@ -2384,7 +2384,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.4.3';
+const APP_VERSION='1.4.4';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2686,6 +2686,17 @@ viewProgress=function(){
     lastBack=n;toast('বের হতে আবার পিছনে চাপুন');
   });
 })();
+
+/* ফ্ল্যাশকার্ড উল্টানো: পুরো পাতা না এঁকে কার্ডের ভেতরটাই বদলায় (ফোনে বেশি নির্ভরযোগ্য) */
+ACT.flip=()=>{
+  try{
+    const F=ST.fc;if(!F)return;F.flip=!F.flip;
+    const b=document.querySelector('.flash'),d=deckOf(F.id);
+    if(!b||!d){rerender();return}
+    const c=d.c[F.q[0]];
+    b.innerHTML=F.flip?`<div class="bk">${c.b}</div>`:`${ar(c.f)}<div class="hint">ট্যাপ করে উল্টান</div>`;
+  }catch(e){toast('উল্টাতে সমস্যা: '+(e&&e.message||e))}
+};
 
 prefs();render();
 if('speechSynthesis' in window)try{speechSynthesis.getVoices()}catch(e){}
