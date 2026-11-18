@@ -6,55 +6,77 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Install dependencies
+      - name: Prepare web files
+        run: |
+          mkdir -p www
+          cp -r index.html sw.js manifest.webmanifest version.json icons www/
+          OWNER=$(echo "$GITHUB_REPOSITORY_OWNER" | tr 'A-Z' 'a-z')
+          REPO="${GITHUB_REPOSITORY#*/}"
+          CFG="<script>window.ARABI_CONFIG={versionUrl:'https://$OWNER.github.io/$REPO/version.json',apkUrl:'https://github.com/$GITHUB_REPOSITORY/releases/latest'};</script>"
+          sed -i "s|<style>html{color-scheme|$CFG<style>html{color-scheme|" www/index.html
+          grep -c ARABI_CONFIG www/index.html
+
+      - name: Install Capacitor
         run: npm install
 
-      - name: Prepare Capacitor web assets
+      - name: Create Android project
         run: |
-          rm -rf www
-          mkdir -p www
-          cp index.html www/
-          cp sw.js www/
-          cp manifest.webmanifest www/
-          cp version.json www/
-          cp -R icons www/
+          npx cap add android
+          npx cap sync android
+          sed -i 's#<application#<queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n    <application#' android/app/src/main/AndroidManifest.xml
+          grep -c TTS_SERVICE android/app/src/main/AndroidManifest.xml
 
-      - name: Create Android project if missing
+      - name: Set version
         run: |
-          if [ ! -d android ]; then
-            npx cap add android
-          fi
+          V=$(node -p "require('./version.json').version")
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"$V\"/" android/app/build.gradle
+          echo "VERSION=$V" >> "$GITHUB_ENV"
 
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Use fixed signing key (so updates install over old versions)
+        run: |
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore
 
-      - name: Build debug APK
-        run: cd android && ./gradlew assembleDebug
+      - name: App icon
+        run: |
+          cp -r android-res/. android/app/src/main/res/
+          ls android/app/src/main/res/mipmap-xxxhdpi
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Collect APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk arabi-shikhi.apk
+
+      - uses: actions/upload-artifact@v4
         with:
-          name: learning-quran-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          name: arabi-shikhi-apk
+          path: arabi-shikhi.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES=$(node -p "require('./version.json').notes.map(n=>'- '+n).join('\n')")
+          gh release delete "v$VERSION" --cleanup-tag -y || true
+          gh release create "v$VERSION" arabi-shikhi.apk --title "আরবি শিখি v$VERSION" --notes "$NOTES" --latest
