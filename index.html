@@ -2387,7 +2387,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.6.0';
+const APP_VERSION='1.6.2';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2496,7 +2496,8 @@ let NTTS=null;
 if(NATIVE){try{NTTS=window.Capacitor.registerPlugin('TextToSpeech')}catch(e){NTTS=null}}
 const TTS_HELP='আরবি ভয়েস চালানো যায়নি। ফোনের সেটিংস > ভাষা > Text-to-speech এ গিয়ে Google ইঞ্জিনের আরবি ভয়েস ডাউনলোড করুন।';
 function nspeak(t,rate){
-  return Promise.resolve(NTTS.stop()).catch(()=>{}).then(()=>NTTS.speak({text:t,lang:'ar-SA',rate:rate||.7,pitch:1,volume:1,category:'ambient'}));
+  const tryLang=i=>{const L=['ar-SA','ar','ar-EG'];return NTTS.speak({text:t,lang:L[i],rate:rate||.7,pitch:1,volume:1,category:'ambient'}).catch(e=>{if(i+1<L.length)return tryLang(i+1);throw e})};
+  return Promise.resolve(NTTS.stop()).catch(()=>{}).then(()=>tryLang(0));
 }
 if(NTTS){
   speak=function(t){nspeak(t,.7).catch(()=>toast(TTS_HELP))};
@@ -2701,34 +2702,79 @@ ACT.flip=()=>{
   }catch(e){toast('উল্টাতে সমস্যা: '+(e&&e.message||e))}
 };
 
-/* ---------- উচ্চারণ শোনা: ফোনের ভয়েস না থাকলে অনলাইন ভয়েস; সেটিং থেকে চালু ---------- */
+/* ---------- উচ্চারণ শোনা: ফোনের ভয়েস → অনলাইন ভয়েস (একাধিক উৎস) + সমস্যা পরীক্ষা ---------- */
 let OVA=null;
-function onlineSpeak(t){
+const OSRC=[
+  q=>'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q='+q,
+  q=>'https://translate.googleapis.com/translate_tts?ie=UTF-8&client=gtx&tl=ar&q='+q,
+  q=>'https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=ar-SA&q='+q
+];
+/* একটি উৎস চালানোর চেষ্টা: সফল হলে {ok:true}, নইলে {ok:false,why} */
+function tryOnline(i,text){
+  return new Promise(res=>{
+    let done=false;const fin=r=>{if(!done){done=true;clearTimeout(tm);res(r)}};
+    const a=new Audio(OSRC[i](encodeURIComponent(text)));
+    OVA=a;
+    const tm=setTimeout(()=>{try{a.pause()}catch(e){}fin({ok:false,why:'সময় শেষ (সাড়া নেই)'})},8000);
+    a.onerror=()=>{const c=a.error&&a.error.code;fin({ok:false,why:c===4?'সার্ভার ফাইল দেয়নি/আটকে দিয়েছে (কোড ৪)':c===2?'নেটওয়ার্ক ত্রুটি (কোড ২)':'ত্রুটি (কোড '+(c||'?')+')'})};
+    a.onplaying=()=>fin({ok:true});
+    const p=a.play();
+    if(p&&p.catch)p.catch(e=>fin({ok:false,why:'চালাতে দেয়নি ('+((e&&e.name)||'?')+')'}));
+  });
+}
+async function onlineSpeak(t){
   try{if(OVA){OVA.pause();OVA=null}}catch(e){}
   const q=String(t||'').replace(/\s+/g,' ').trim().slice(0,190);if(!q)return;
-  const a=new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q='+encodeURIComponent(q));
-  OVA=a;a.onerror=()=>toast('অনলাইন ভয়েস চালানো যায়নি। ইন্টারনেট সংযোগ দেখুন।');
-  const p=a.play();if(p&&p.catch)p.catch(()=>toast('অনলাইন ভয়েস চালানো যায়নি। ইন্টারনেট সংযোগ দেখুন।'));
+  const why=[];
+  for(let i=0;i<OSRC.length;i++){
+    const r=await tryOnline(i,q);
+    if(r.ok)return;
+    why.push(r.why);
+    if(r.why.indexOf('চালাতে দেয়নি')===0)break;   /* ব্রাউজার নীতি — অন্য উৎসে একই হবে */
+  }
+  ST.vwhy=why;
+  toast('অনলাইন ভয়েস চালানো যায়নি: '+why[why.length-1]+'। ‘আমি’ ট্যাবে ‘ভয়েস পরীক্ষা’ চাপুন।');
 }
 const _spk=speak;
 speak=function(t){
   const noLocal=!NTTS&&!('speechSynthesis' in window);
   if(S.voice==='online'||noLocal){onlineSpeak(t);return}
-  if(NTTS){nspeak(t,.7).catch(()=>onlineSpeak(t));return}
+  if(NTTS){nspeak(t,.7).catch(e=>{ST.nwhy=String((e&&e.message)||e||'');onlineSpeak(t)});return}
   _spk(t);
 };
+
+/* ভয়েস পরীক্ষা */
+async function voiceDiag(){
+  const L=[];
+  L.push('ইন্টারনেট: '+(navigator.onLine?'সংযুক্ত':'সংযুক্ত নয়'));
+  if(NTTS){
+    try{const r=await NTTS.isLanguageSupported({lang:'ar-SA'});L.push('ফোনের আরবি ভয়েস: '+(r&&r.supported?'আছে':'নেই — Settings → Text-to-speech-এ Google ইঞ্জিন ও Arabic ভয়েস ডাউনলোড করুন'))}
+    catch(e){L.push('ফোনের আরবি ভয়েস: যাচাই করা যায়নি ('+((e&&e.message)||'?')+')')}
+    if(ST.nwhy)L.push('শেষ ফোন-ভয়েস ত্রুটি: '+ST.nwhy);
+  }else L.push('ফোনের ভয়েস: '+('speechSynthesis' in window?'ব্রাউজারের ভয়েস আছে':'নেই'));
+  for(let i=0;i<OSRC.length;i++){const r=await tryOnline(i,'بِسْمِ');L.push('অনলাইন উৎস '+bd(i+1)+': '+(r.ok?'চলছে ✓':'ব্যর্থ — '+r.why));try{OVA&&OVA.pause()}catch(e){}if(r.ok)break}
+  return L;
+}
+
 const _vp2=viewProgress;
 viewProgress=function(){
-  const on=S.voice==='online';
+  const on=S.voice==='online',d=ST.vdiag;
   return _vp2()+`<section class="blk"><div class="card"><b>উচ্চারণ শোনা</b>
   <p class="muted" style="margin:6px 0 10px">অক্ষর ও শব্দের উচ্চারণ কোথা থেকে শুনবেন। ফোনে আরবি ভয়েস না থাকলে অনলাইন ভয়েস বেছে নিন (ইন্টারনেট লাগবে)।</p>
   <div class="row" style="gap:8px;flex-wrap:wrap">
     <button type="button" class="btn ${on?'ghost':''}" data-act="voice" data-v="auto">অটো (ফোনের ভয়েস)</button>
     <button type="button" class="btn ${on?'':'ghost'}" data-act="voice" data-v="online">অনলাইন ভয়েস</button>
   </div>
-  <button type="button" class="btn ghost sm" style="margin-top:10px" data-act="say" data-t="بِسْمِ ٱللَّهِ">পরীক্ষা করুন: بِسْمِ ٱللَّهِ</button></div></section>`;
+  <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button type="button" class="btn ghost sm" data-act="say" data-t="بِسْمِ ٱللَّهِ">পরীক্ষা: بِسْمِ ٱللَّهِ</button>
+    <button type="button" class="btn ghost sm" data-act="vdiag">ভয়েস পরীক্ষা (সমস্যা খুঁজুন)</button>
+  </div>
+  ${d?`<ul class="mist" style="margin-top:10px" role="status">${d.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>`:''}</div></section>`;
 };
-Object.assign(ACT,{voice:t=>{S.voice=t.dataset.v;save();rerender();toast(S.voice==='online'?'অনলাইন ভয়েস চালু হয়েছে':'অটো ভয়েস চালু হয়েছে')}});
+Object.assign(ACT,{
+  voice:t=>{S.voice=t.dataset.v;save();rerender();toast(S.voice==='online'?'অনলাইন ভয়েস চালু হয়েছে':'অটো ভয়েস চালু হয়েছে')},
+  vdiag:async()=>{ST.vdiag=['পরীক্ষা চলছে…'];rerender();ST.vdiag=await voiceDiag();rerender()}
+});
 
 /* ---------- আপনি যা শিখবেন (কোর্সের লক্ষ্য) + বই-দৃশ্য ---------- */
 const OUT=[
