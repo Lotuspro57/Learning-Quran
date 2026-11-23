@@ -2327,7 +2327,7 @@ viewHome=function(){
 
 /* পাঠ ট্যাব: সব লেভেল + সাব-মেনু */
 const sub=(cur,items)=>`<nav class="subnav" aria-label="উপ-মেনু">${items.map(i=>`<a href="${i[0]}" ${i[2]===cur?'aria-current="page"':''}>${i[1]}</a>`).join('')}</nav>`;
-const LSUB=[['#lessons','পাঠ','lessons'],['#book','বই','book'],['#practice','অনুশীলন','practice'],['#cards','কার্ড','cards'],['#read','পড়ার ঘর','read']];
+const LSUB=[['#lessons','পাঠ','lessons'],['#book','বই','book'],['#mistakes','ভুল শুধরাই','mistakes'],['#practice','অনুশীলন','practice'],['#cards','কার্ড','cards'],['#read','পড়ার ঘর','read']];
 const MSUB=[['#progress','অগ্রগতি','progress'],['#plan','পরিকল্পনা ও সূচি','plan']];
 
 /* দোয়া ট্যাব */
@@ -2362,6 +2362,7 @@ render=function(keepScroll){
   switch(a){
     case'level':html=viewLevel(+b);break;
     case'lessons':html=sub('lessons',LSUB)+goalsCard()+_levels();break;
+    case'mistakes':html=sub('mistakes',LSUB)+viewMistakes();break;
     case'book':html=sub('book',LSUB)+viewBook(b);break;
     case'goals':html=viewGoals();break;
     case'practice':html=sub('practice',LSUB)+viewPractice(b);break;
@@ -2376,7 +2377,7 @@ render=function(keepScroll){
     default:html=viewHome();
   }
   app.innerHTML=html;
-  const tab=({home:'home',level:'lessons',lessons:'lessons',book:'lessons',goals:'lessons',practice:'lessons',cards:'lessons',read:'lessons',quran:'quran',dua:'dua',plan:'progress',progress:'progress'})[a]||'home';
+  const tab=({home:'home',level:'lessons',lessons:'lessons',book:'lessons',mistakes:'lessons',goals:'lessons',practice:'lessons',cards:'lessons',read:'lessons',quran:'quran',dua:'dua',plan:'progress',progress:'progress'})[a]||'home';
   document.querySelectorAll('[data-tab]').forEach(x=>{if(x.dataset.tab===tab)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});
   const fab=$('#askfab');if(fab)fab.hidden=(a==='tutor');
   document.body.classList.toggle('ai',a==='tutor');
@@ -2386,7 +2387,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.5.1';
+const APP_VERSION='1.6.0';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2870,6 +2871,197 @@ _s8.textContent=`
 @media(min-width:1100px){.goals2{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
 `;
 document.head.appendChild(_s8);
+
+/* ১০০টি সাধারণ উচ্চারণ-ভুল: [বিভাগ, আরবি, ভুল (যা সাধারণত বলা হয়), সঠিক, টিপ] */
+const MCAT=[['ম','হরফের মাখরাজ'],['হ','হরকত ও মাদ'],['ত','তাশদীদ ও সাকিন'],['গ','গুন্নাহ ও নূন-মীম'],['ল','লাম ও রা'],['ও','ওয়াক্‌ফ ও হামযা'],['শ','সূরা ও দোয়ার শব্দ']];
+const MIS=[
+/* ম — হরফের মাখরাজ */
+['ম','ثَوَاب','সাওয়াব','থাওয়াব','ث: জিহ্বার ডগা সামনের দাঁতের ফাঁকে রেখে হালকা বাতাস ছাড়ুন (ইংরেজি think-এর th)। ‘স’ নয়।'],
+['ম','ثُمَّ','সুম্মা','থুম্মা','ث-এর একই নিয়ম: জিহ্বা দাঁতের ফাঁকে।'],
+['ম','ثَلَاثَة','সালাসা','থালা-থা','দুটি ث-ই জিহ্বা দাঁতের ফাঁকে রেখে; মাঝের আলিফ দুই মাত্রা।'],
+['ম','ذِكْر','যিকর','ধিকর','ذ: জিহ্বা দাঁতের ফাঁকে, আওয়াজসহ (ইংরেজি this-এর th)। ‘য/জ’ নয়।'],
+['ম','هَذَا','হাযা','হাধা','ذ-তে ‘য’ বলা সবচেয়ে প্রচলিত ভুল।'],
+['ম','الَّذِينَ','আল্লাযীনা','আল্লাধীনা','ذ: জিহ্বার ডগা দাঁতের মাঝে।'],
+['ম','ظَالِم','যালিম','ধ্বালিম','ظ: ذ-এর স্থান থেকেই, তবে মোটা সুরে।'],
+['ম','عَظِيم','আযীম','আধ্বীম','ظ: ‘য’ নয়, মোটা ধ্ব।'],
+['ম','ظُهْر','যুহর','ধ্বুহর','ظ মোটা (ইস্তি‘লা)।'],
+['ম','زَكَاة','জাকাত','যাকাত','ز: দাঁত কাছাকাছি রেখে ভোঁ-ভোঁ আওয়াজ (ইংরেজি z)। ‘জ’ নয়।'],
+['ম','زَيْت','জাইত','যাইত','ز-তে বাংলা ‘জ’ (তালব্য) বলবেন না।'],
+['ম','صَلَاة','সালাত','স্বালাত','ص: মোটা সুরে, জিহ্বার পিঠ উঁচু করে। হালকা ‘স’ নয়।'],
+['ম','صِرَاط','সিরাত','স্বিরাত','ص মোটা; ‘স’ হালকা করলে অর্থই বদলে যেতে পারে।'],
+['ম','صَبْر','সবর','স্ববর','ص: মোটা স; س-এর সঙ্গে গুলিয়ে ফেলবেন না।'],
+['ম','ضَالِّين','দালিন / যাল্লীন','দ্বাল্লীন','ض: জিহ্বার পাশ উপরের মাড়িতে ঠেকিয়ে, মোটা। ‘দ’ বা ‘য’ নয়।'],
+['ম','ضَرَبَ','দারাবা','দ্বারাবা','ض ও د আলাদা: د হালকা, ض মোটা।'],
+['ম','طَعَام','তাআম','ত্বাআম','ط: মোটা সুরে। হালকা ‘ত’ নয়।'],
+['ম','طَاعَة','তাআত','ত্বা‘আত','ط মোটা; ت হালকা।'],
+['ম','تِين','টিন','তীন','ت: জিহ্বার ডগা সামনের দাঁতের গোড়ায়। মূর্ধন্য ‘ট’ নয়।'],
+['ম','دِين','ডিন','দীন','د: দন্ত্য ‘দ’। মূর্ধন্য ‘ড’ নয়।'],
+['ম','قَلْب','কলব','ক্বলব','ق: জিহ্বার গোড়া গলার কাছে ঠেকিয়ে, মোটা। ‘ক’ নয়।'],
+['ম','قُرْآن','কুরআন','ক্বুরআন','ق গভীর ও মোটা; ك হালকা।'],
+['ম','قَالَ','কালা','ক্বালা','ق: গলার গোড়া থেকে।'],
+['ম','كَرِيم','ক্বারীম','কারীম','ك: হালকা, মুখের সামনের দিক থেকে। ‘ক্ব’ নয়।'],
+['ম','كِتَاب','ক্বিতাব','কিতাব','ك হালকা; ق-এর মতো মোটা করবেন না।'],
+['ম','خَالِق','হালিক / কালিক','খ়ালিক','خ: গলার উপরের অংশ থেকে ঘষা আওয়াজ। ‘খ’ বা ‘হ’ নয়।'],
+['ম','خَيْر','খায়ের','খ়াইর','خ: বাংলা ‘খ’-এর চেয়ে গভীর ও ঘষা।'],
+['ম','غَفُور','গফুর','গ়াফুর','غ: গলা থেকে গড়-গড় আওয়াজ। বাংলা ‘গ’ নয়।'],
+['ম','غَيْر','গায়ের','গ়াইর','غ: গলার ভেতর থেকে।'],
+['ম','حَمْد','হামদ','হ়ামদ','ح: গলার মাঝখান থেকে চাপা ‘হ’। হালকা ‘হ’ (ه) নয়।'],
+['ম','حَقّ','হক','হ়াক্ক','ح চাপা; ه হালকা। দুটি আলাদা হরফ।'],
+['ম','هَادِي','হ়াদী','হাদী','ه: গলার শুরু থেকে হালকা বাতাস। চাপা করবেন না।'],
+['ম','عِلْم','ইলম','‘ইলম','ع: গলা চেপে ধরে আওয়াজ। ‘আ/ই’-এর মতো সরল স্বর নয়।'],
+['ম','عَرَب','আরব','‘আরাব','ع: গলার ভেতর থেকে চাপা স্বর।'],
+['ম','أَمْر','‘আমর','আমর','أ (হামযা): গলায় হালকা ধাক্কা। ع-এর মতো চাপা নয়।'],
+['ম','طَارِق','তারিক','ত্বা-রিক','ط মোটা; হালকা ‘ত’ নয়।'],
+['ম','فِيل','ফীল (ঠোঁটে ‘প’+হ)','ফীল (f)','ف: উপরের দাঁত নিচের ঠোঁটে ছুঁয়ে বাতাস ছাড়ুন; বাংলা ‘ফ’ নয়।'],
+['ম','وَاحِد','ভাহিদ','ওয়া-হিদ','و: দুই ঠোঁট গোল করে ‘ওয়’; ‘ভ’ নয়।'],
+['ম','شُكْر','সুকর','শুকর','ش: তালু থেকে ‘শ’; ‘স’ নয়।'],
+/* হ — হরকত ও মাদ */
+['হ','كَتَبَ','কাতাবা','কতাবা','যবর ছোট, এক মাত্রা। আলিফের মতো টানবেন না।'],
+['হ','بِسْمِ','বেসমে','বিসমি','যের ‘ই’-এর মতো। ‘এ’ নয়।'],
+['হ','مُحَمَّد','মোহাম্মদ','মুহাম্মাদ','পেশ ‘উ’। ‘ও’ নয়।'],
+['হ','قُلْ','কোল','ক্বুল','পেশ = ‘উ’; ‘ও’ করলে হরকত বদলে যায়।'],
+['হ','هُوَ','হো','হুওয়া','পেশের পর ওয়াও যবরসহ: ‘হুওয়া’।'],
+['হ','أَحَدٌ','আহাদোন','আহাদুন','তানবীনে পেশ = ‘উন’।'],
+['হ','عَلِيمٌ','আলীমোন','‘আলীমুন','তানবীন পেশ: ‘উন’। ‘ওন’ নয়।'],
+['হ','رَحِيمٍ','রাহীমেন','রাহীমিন','তানবীন যের: ‘ইন’। ‘এন’ নয়।'],
+['হ','قَالَ','কালা (ছোট)','ক্বা-লা','আলিফ মাদ: দুই মাত্রা টানুন।'],
+['হ','قِيلَ','কিল','ক্বী-লা','ইয়া সাকিনের আগে যের: দুই মাত্রা টানুন।'],
+['হ','يَقُولُ','ইয়াকুলু','ইয়াক্বূ-লু','পেশের পর ওয়াও সাকিন: ‘ঊ’ দুই মাত্রা।'],
+['হ','جَاءَ','জা’আ','জা-আ','মাদ্দে মুত্তাসিল: হামযার আগে লম্বা টান।'],
+['হ','رَسُولُ','রাসূল (ছোট)','রাসূ-লু','ওয়াও মাদ: দুই মাত্রা।'],
+['হ','فِي','ফি (ছোট)','ফী','ইয়া মাদ: দুই মাত্রা।'],
+/* ত — তাশদীদ ও সাকিন */
+['ত','رَبَّنَا','রবনা','রাব্বানা','তাশদীদ: ‘ব’ দুবার, জোর দিয়ে।'],
+['ত','ثُمَّ','সুমা','থুম্মা','তাশদীদ মীম: দ্বিত্ব ও গুন্নাহসহ।'],
+['ত','إِنَّ','ইন','ইন্না','তাশদীদ নূন: দ্বিত্বসহ গুন্নাহ।'],
+['ত','قَدْ','কাদ (নরম)','ক্বাদ্ (কম্পনসহ)','ক্বলক্বলাহ: সাকিন দাল-এ হালকা ঝাঁকুনি।'],
+['ত','أَحَد','আহাদ (নরম)','আহাদ্ (কম্পনসহ)','ওয়াক্‌ফে দাল-এ ক্বলক্বলাহ।'],
+['ত','يَخْرُجُ','ইয়াখরুজু','ইয়াখ়্‌রুজু','সাকিন খ-এ থেমে স্পষ্ট আওয়াজ।'],
+['ত','اقْرَأْ','ইকরা','ইক্বরা’','সাকিন ক্বাফে ক্বলক্বলাহ।'],
+['ত','يَوْم','ইয়াওম','ইয়াওম্','ওয়াও লীন: ‘ও’ নয়, দুই ঠোঁট সংকুচিত করে ‘ওয়’।'],
+['ত','بَيْت','বায়েত','বাইত','ইয়া লীন: ‘ই’-তে পৌঁছে থামুন; ‘এ’ নয়।'],
+['ত','وَالْعَصْر','ওয়াল আসর','ওয়াল-‘আস্‌র','ع চাপা; শেষে সাকিন র।'],
+/* গ — গুন্নাহ, নূন সাকিন ও মীম সাকিন */
+['গ','مِنْ بَعْدِ','মিন বা‘দি','মিম্-বা‘দি','ইক্বলাব: নূন সাকিনের পর ب থাকলে নূন ম-এ বদলে গুন্নাহসহ পড়ুন।'],
+['গ','مِنْ خَيْر','মিন খাইর','মিন্-খ়াইর','ইযহার: নূন সাকিন গলার হরফের আগে পরিষ্কার।'],
+['গ','أَنْعَمْتَ','আনআমতা','আন-‘আমতা','ইযহার: নূন স্পষ্ট করুন।'],
+['গ','مَنْ يَقُولُ','মান ইয়াকুলু','মাইয়্যাক্বূলু','ইদগাম বিগুন্নাহ: নূন ইয়া-তে মিশে গুন্নাহসহ।'],
+['গ','مَنْ يَعْمَلْ','মান ইয়ামাল','মাইয়্যা‘মাল','ইদগাম: নূন মিশে যায় ও গুন্নাহ হয়।'],
+['গ','مِنْ رَبِّهِمْ','মিন রব্বিহিম','মির-রাব্বিহিম','ইদগাম বিলা গুন্নাহ: গুন্নাহ ছাড়া মিশে যায়।'],
+['গ','مِنْ قَبْلِكَ','মিন কাবলিকা','মিন্-ক্বাবলিকা','ইখফা: নাকের ভেতর থেকে অস্পষ্ট নূন।'],
+['গ','أَنْتُمْ','আনতুম','আন্-তুম','ইখফা ও গুন্নাহ ঠিক রাখুন।'],
+['গ','تَرْمِيهِم بِحِجَارَة','তারমীহিম বি','তারমীহিম্-বি','মীম সাকিনের পর ব: ইখফা শাফাওয়ী; ঠোঁট হালকা বন্ধ, গুন্নাহসহ।'],
+/* ল — লাম ও রা */
+['ল','بِسْمِ اللَّهِ','বিসমিল্লাহি (মোটা)','বিসমিল্লা-হি (পাতলা)','যের-এর পর লাম পাতলা।'],
+['ল','قَالَ اللَّهُ','ক্বালাল্লাহু (পাতলা)','ক্বা-লাল্লা-হু (মোটা)','যবরের পর লাম মোটা।'],
+['ল','رَبِّ','রব (পাতলা)','র্‌ব্বি (র মোটা)','যবর/পেশযুক্ত র মোটা।'],
+['ল','رِزْق','রিজক (মোটা)','রিয্ক (পাতলা)','যেরযুক্ত র পাতলা।'],
+['ল','الرَّحْمَن','আর-রহমান (পাতলা)','আর-র্‌হমান','র-এ তাশদীদ ও যবর: মোটা।'],
+['ল','الصِّرَاط','সিরাত','স্বিরাত','লাম শামসী: ‘আল’-এর লাম পড়া হয় না, ص-এ মিশে যায়।'],
+['ল','الشَّمْس','আল-শামস','আশ-শামস','শামসী হরফে লাম মিশে যায়।'],
+/* ও — ওয়াক্‌ফ ও হামযা */
+['ও','بِسْمِ اللَّهِ الرَّحْمَٰنِ','বিসমি আল্লাহি আর-রহমান','বিসমিল্লা-হির-রাহমানি','‘আল’ ও ‘আল্লাহ’-এর আলিফ মাঝে পড়ে যায়।'],
+['ও','الرَّحِيم','আর-রাহীমি (শেষে যের)','আর-রাহীম','থামলে শেষ হরকত পড়ে যায়, সাকিন হয়।'],
+['ও','الْعَالَمِينَ','আল-আলামীনা (থেমেও)','আল-‘আলামীন','ওয়াক্‌ফে শেষের হরকত বাদ।'],
+['ও','أَحَدٌ','আহাদুন (থেমে)','আহাদ','ওয়াক্‌ফে তানবীন পেশ/যের বাদ, সাকিন।'],
+['ও','رَحْمَةً','রহমাতান (থেমে)','রহমাহ','তা মারবুতা ওয়াক্‌ফে ‘হা’ হয়ে যায়।'],
+['ও','سَلَامًا','সালামান (থেমে)','সালামা','তানবীন যবরে থামলে আলিফ-এর টান।'],
+['ও','يُؤْمِنُونَ','ইউমিনূন (হামযা বাদ)','ইউ’মিনূন','হামযা সাকিন: গলায় স্পষ্ট ধাক্কা।'],
+['ও','سَأَلَ','সালা (হামযা বাদ)','সা’আলা','মাঝের হামযা স্পষ্ট করুন।'],
+['ও','أُولَٰئِكَ','ওলায়িকা','উলা-ইকা','শুরুর হামযা উচ্চারিত; শব্দের শুরু ‘উ’।'],
+/* শ — সূরা ও দোয়ার শব্দ */
+['শ','ٱلْحَمْدُ لِلَّهِ','আলহামদুলিল্লাহ (নরম হ)','আল-হ়ামদু লিল্লা-হি','চাপা ح ও মোটা-পাতলা লাম মিলিয়ে।'],
+['শ','رَبِّ الْعَالَمِينَ','রব্বিল আলামিন','রাব্বিল-‘আ-লামীন','ع চাপা, ও মাদ দুই মাত্রা।'],
+['শ','مَالِكِ يَوْمِ الدِّينِ','মালিকি ইয়াউমিদ্দিন','মা-লিকি ইয়াওমিদ্‌-দীন','লীন ওয়াও ও তাশদীদ দাল।'],
+['শ','إِيَّاكَ نَعْبُدُ','ইয়্যাকা নাবুদু','ইইয়্যা-কা না‘বুদু','ع চাপা; ইয়া তাশদীদ।'],
+['শ','اهْدِنَا الصِّرَاطَ','ইহদিনাস সিরাত','ইহ্‌দিনাস্‌-স্বিরাত্বা','ص মোটা, ه হালকা।'],
+['শ','الْمُسْتَقِيمَ','মুস্তাকিম','আল-মুস্তাক্বীম','ق মোটা।'],
+['শ','غَيْرِ الْمَغْضُوبِ','গায়রিল মাগদুব','গ়াইরিল-মাগ়্‌দ্বূবি','غ গলা থেকে; ض মোটা।'],
+['শ','وَلَا الضَّالِّينَ','ওয়ালাদ্দাল্লিন','ওয়ালাদ-দ্বাল্লীন','ض-এর ঠিক মাখরাজ।'],
+['শ','قُلْ هُوَ اللَّهُ أَحَدٌ','কুল হুয়াল্লাহু আহাদ','ক্বুল হুওয়াল্লা-হু আহাদ','ق মোটা; পেশ ‘উ’।'],
+['শ','اللَّهُ الصَّمَدُ','আল্লাহুস সামাদ','আল্লা-হুস্‌-স্বামাদ','ص মোটা।'],
+['শ','لَمْ يَلِدْ وَلَمْ يُولَدْ','লাম ইয়ালিদ ওয়া লাম ইউলাদ','লাম ইয়ালিদ ওয়ালাম ইউলাদ্','শেষে ক্বলক্বলাহ।'],
+['শ','وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ','ওয়ালাম ইয়াকুন লাহু কুফুওয়ান আহাদ','ওয়ালাম্ ইয়াকুল্লাহু কুফুওয়ান আহাদ','নূন+লাম ইদগাম; শেষে থামলে সাকিন।']
+];
+
+/* ---------- ভুল শুধরাই: ১০০টি সাধারণ উচ্চারণ-ভুল ---------- */
+S.mlearn=S.mlearn||{};
+ST.mcat=ST.mcat||'all';
+const mlCount=()=>MIS.reduce((a,_,i)=>a+(S.mlearn[i]?1:0),0);
+const mShuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+window.viewMistakes=function(){
+  const n=mlCount(),t=MIS.length,cat=ST.mcat;
+  if(ST.mq)return viewMQuiz();
+  const chips=[['all','সব ('+bd(t)+')']].concat(MCAT.map(c=>[c[0],c[1]+' ('+bd(MIS.filter(m=>m[0]===c[0]).length)+')']))
+    .map(c=>`<button type="button" class="chip2${cat===c[0]?' on':''}" data-act="mcat" data-v="${c[0]}" ${cat===c[0]?'aria-pressed="true"':'aria-pressed="false"'}>${c[1]}</button>`).join('');
+  const items=MIS.map((m,i)=>[m,i]).filter(x=>cat==='all'||x[0][0]===cat).map(([m,i])=>`
+  <article class="mcard${S.mlearn[i]?' ok':''}"><div class="row sp"><span class="muted">${bd(i+1)} · ${(MCAT.find(c=>c[0]===m[0])||[])[1]||''}</span>
+    <button type="button" class="btn ghost sm" data-act="say" data-t="${esc(m[1])}" aria-label="শুনুন">🔊 শুনুন</button></div>
+    <div class="ar mar" lang="ar" dir="rtl">${m[1]}</div>
+    <div class="mw"><span class="mtag bad">ভুল</span><span class="mbad">${esc(m[2])}</span></div>
+    <div class="mw"><span class="mtag good">সঠিক</span><b class="mgood">${esc(m[3])}</b></div>
+    <p class="mtip">${esc(m[4])}</p>
+    <button type="button" class="btn ghost sm" data-act="mlearn" data-i="${i}">${S.mlearn[i]?'শেখা হয়েছে ✓':'শিখে ফেলেছি'}</button></article>`).join('');
+  return `<section class="blk"><div class="eyebrow">উচ্চারণ সংশোধন</div><h1 style="margin:2px 0 6px">ভুল শুধরাই</h1>
+  <p class="lead">বাংলাভাষী শিক্ষার্থীদের ১০০টি সাধারণ ভুল ও সঠিক উচ্চারণ।</p>
+  <div class="card" style="margin:12px 0"><div class="row sp"><b>অগ্রগতি</b><span>${bd(n)}/${bd(t)} শেখা</span></div><div class="bar" style="margin-top:8px"><i style="width:${n/t*100}%"></i></div>
+    <button type="button" class="btn" style="margin-top:12px;width:100%" data-act="mqstart">১০টি প্রশ্নে পরীক্ষা দিন</button></div>
+  <details class="card" style="margin-bottom:12px"><summary><b>বাংলা বানানের সংকেত (এগুলো কী?)</b></summary>
+    <ul class="mist" style="margin-top:8px"><li><b>স্ব, ত্ব, ধ্ব, দ্ব, ক্ব</b> = মোটা (ভারী) সুর: ص ط ظ ض ق</li><li><b>খ়, গ়</b> = গলার ভেতরের ঘষা আওয়াজ: خ غ</li><li><b>হ়</b> = গলার মাঝখান থেকে চাপা ‘হ’: ح</li><li><b>‘</b> = গলা চেপে আওয়াজ: ع</li><li>বাংলা বর্ণে আরবি ধ্বনি পুরোপুরি আসে না। বানান সহায়ক মাত্র, 🔊 শুনুন ও যোগ্য শিক্ষকের কাছে মিলিয়ে নিন।</li></ul></details>
+  <div class="chips2" style="margin-bottom:12px">${chips}</div>
+  <div class="mlist">${items}</div></section>`;
+};
+
+/* পরীক্ষা */
+function viewMQuiz(){
+  const q=ST.mq;
+  if(q.k>=q.ord.length){
+    const pct=Math.round(q.sc/q.ord.length*100);
+    return `<section class="blk"><h1>ফলাফল</h1><div class="card" style="text-align:center"><div style="font-size:2.4em;font-weight:800;color:var(--green)">${bd(q.sc)}/${bd(q.ord.length)}</div><p>${pct>=80?'মাশা-আল্লাহ! খুব ভালো।':pct>=50?'ভালো চেষ্টা। ভুলগুলো আবার দেখুন।':'আবার চেষ্টা করুন, তালিকা আবার পড়ুন।'}</p>
+    <button type="button" class="btn" data-act="mqstart">আবার পরীক্ষা</button> <button type="button" class="btn ghost" data-act="mqexit">তালিকায় ফিরি</button></div></section>`;
+  }
+  const i=q.ord[q.k],m=MIS[i];
+  const opts=q.flip[q.k]?[['r',m[3]],['w',m[2]]]:[['w',m[2]],['r',m[3]]];
+  const btns=opts.map(o=>{let cls='opt';if(q.ans){if(o[0]==='r')cls+=' good';else if(q.ans===o[0])cls+=' bad'}
+    return `<button type="button" class="${cls}" data-act="mqans" data-v="${o[0]}" ${q.ans?'disabled':''}>${esc(o[1])}</button>`}).join('');
+  return `<section class="blk"><div class="row sp"><a class="back" href="#" data-act="mqexit">← বের হই</a><span class="muted">${bd(q.k+1)}/${bd(q.ord.length)}</span></div>
+  <h2 style="margin:8px 0">সঠিক উচ্চারণ কোনটি?</h2>
+  <div class="card" style="text-align:center"><div class="ar" lang="ar" dir="rtl" style="font-size:2.6em;line-height:1.6">${m[1]}</div>
+  <button type="button" class="btn ghost sm" data-act="say" data-t="${esc(m[1])}">🔊 শুনুন</button></div>
+  <div class="opts" style="margin-top:12px;display:grid;gap:10px">${btns}</div>
+  ${q.ans?`<div class="card" style="margin-top:12px"><b>${q.ans==='r'?'সঠিক!':'ভুল'}</b><p class="mtip">${esc(m[4])}</p><button type="button" class="btn" data-act="mqnext">${q.k+1<q.ord.length?'পরের প্রশ্ন →':'ফলাফল দেখুন'}</button></div>`:''}</section>`;
+}
+Object.assign(ACT,{
+  mcat:t=>{ST.mcat=t.dataset.v;rerender()},
+  mlearn:t=>{const i=t.dataset.i;if(S.mlearn[i])delete S.mlearn[i];else S.mlearn[i]=1;save();rerender()},
+  mqstart:()=>{const ord=mShuf(MIS.map((_,i)=>i)).slice(0,10);ST.mq={ord,k:0,sc:0,ans:null,flip:ord.map(()=>Math.random()<.5)};if((location.hash||'')!=='#mistakes')location.hash='#mistakes';else rerender()},
+  mqans:t=>{const q=ST.mq;if(!q||q.ans)return;q.ans=t.dataset.v;if(q.ans==='r')q.sc++;rerender()},
+  mqnext:()=>{const q=ST.mq;q.k++;q.ans=null;rerender()},
+  mqexit:(t,e)=>{if(e&&e.preventDefault)e.preventDefault();ST.mq=null;rerender()}
+});
+
+/* হোমে শর্টকাট */
+const _vh8=viewHome;
+viewHome=function(){return _vh8().replace(/<\/section>\s*$/,`<a class="card" href="#mistakes" style="display:block;text-decoration:none;color:inherit;margin-top:14px"><div class="row sp"><b>ভুল শুধরাই</b><small class="muted">${bd(mlCount())}/১০০ শেখা</small></div><small class="muted">১০০টি সাধারণ উচ্চারণ-ভুল ও সঠিক রূপ →</small></a></section>`)};
+
+const _s9=document.createElement('style');
+_s9.textContent=`
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.mcard.ok{border-color:var(--green)}
+.mar{font-size:2em;line-height:1.5;text-align:right;margin:0 0 4px}
+.mw{display:flex;gap:10px;align-items:baseline;margin:4px 0}
+.mtag{flex:none;font-size:.78em;font-weight:700;padding:2px 10px;border-radius:999px}
+.mtag.bad{background:#fde7e5;color:#8c1d18}.mtag.good{background:var(--green-l);color:var(--green)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .mtag.bad{background:#3a2220;color:#f2b8b5}}
+:root[data-theme="dark"] .mtag.bad{background:#3a2220;color:#f2b8b5}
+.mbad{text-decoration:line-through;text-decoration-thickness:1px;color:var(--muted)}
+.mgood{color:var(--green)}
+.mtip{margin:6px 0 10px;color:var(--muted);font-size:.92em}
+.opt.good{border-color:var(--green);background:var(--green-l)}.opt.bad{border-color:#b3261e}
+@media(min-width:900px){.mlist{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mlist .mcard{margin:0}}
+`;
+document.head.appendChild(_s9);
 
 prefs();render();
 if('speechSynthesis' in window)try{speechSynthesis.getVoices()}catch(e){}
