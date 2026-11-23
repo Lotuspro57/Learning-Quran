@@ -2387,7 +2387,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.6.2';
+const APP_VERSION='1.6.3';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2735,11 +2735,57 @@ async function onlineSpeak(t){
   ST.vwhy=why;
   toast('অনলাইন ভয়েস চালানো যায়নি: '+why[why.length-1]+'। ‘আমি’ ট্যাবে ‘ভয়েস পরীক্ষা’ চাপুন।');
 }
+/* Gemini ভয়েস (ব্যবহারকারীর নিজের API কী) */
+const GV={ctx:null,mem:new Map()};
+const gKey=()=>{const c=aiGet();return c&&c.p==='gemini'&&c.k?c.k:null};
+function gctx(){if(!GV.ctx){const C=window.AudioContext||window.webkitAudioContext;GV.ctx=new C()}try{if(GV.ctx.state==='suspended')GV.ctx.resume()}catch(e){}return GV.ctx}
+function idb(){return new Promise((ok,no)=>{try{const r=indexedDB.open('arabi-voice',1);r.onupgradeneeded=()=>r.result.createObjectStore('a');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}})}
+const idbGet=k=>idb().then(d=>new Promise(ok=>{const q=d.transaction('a').objectStore('a').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>ok(null)})).catch(()=>null);
+const idbSet=(k,v)=>idb().then(d=>{d.transaction('a','readwrite').objectStore('a').put(v,k)}).catch(()=>{});
+async function geminiPcm(text){
+  const key=gKey();if(!key)throw {why:'Gemini কী নেই'};
+  if(GV.mem.has(text))return GV.mem.get(text);
+  const hit=await idbGet(text);if(hit){GV.mem.set(text,hit);return hit}
+  const MODELS=['gemini-2.5-flash-preview-tts','gemini-2.5-flash-tts'];
+  let last={why:'অজানা ত্রুটি'};
+  for(const m of MODELS){
+    let r;
+    try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':key},
+      body:JSON.stringify({contents:[{parts:[{text:'Say slowly and clearly in Arabic: '+text}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Kore'}}}}})})}
+    catch(e){last={why:'নেটওয়ার্ক ত্রুটি'};continue}
+    if(r.status===429)throw {why:'Gemini-র ফ্রি সীমা শেষ, একটু পরে চেষ্টা করুন',limit:true};
+    if(r.status===401||r.status===403){throw {why:'কী কাজ করছে না (কোড '+r.status+')'}}
+    if(!r.ok){last={why:'Gemini ত্রুটি (কোড '+r.status+')'};continue}
+    const j=await r.json();
+    const part=(((j.candidates||[])[0]||{}).content||{}).parts;const inl=(part||[]).map(p=>p.inlineData).find(Boolean);
+    if(!inl||!inl.data){last={why:'Gemini অডিও দেয়নি'};continue}
+    const rate=+((/rate=(\d+)/.exec(inl.mimeType||'')||[])[1])||24000;
+    const out={d:inl.data,rate};GV.mem.set(text,out);idbSet(text,out);return out;
+  }
+  throw last;
+}
+function playPcm({d,rate}){
+  const ctx=gctx(),bin=atob(d),n=bin.length>>1,f=new Float32Array(n);
+  for(let i=0;i<n;i++){let v=bin.charCodeAt(2*i)|(bin.charCodeAt(2*i+1)<<8);if(v>=32768)v-=65536;f[i]=v/32768}
+  const buf=ctx.createBuffer(1,n,rate);buf.getChannelData(0).set(f);
+  try{if(GV.src)GV.src.stop()}catch(e){}
+  const s=ctx.createBufferSource();s.buffer=buf;s.connect(ctx.destination);s.start();GV.src=s;
+}
+function geminiThen(t){
+  gctx();   /* ক্লিকের মুহূর্তেই অডিও চালু */
+  geminiPcm(String(t||'').trim().slice(0,200)).then(playPcm).catch(e=>{
+    ST.gwhy=e&&e.why;
+    if(e&&e.limit){toast(e.why);return}
+    toast('Gemini ভয়েস: '+((e&&e.why)||'ব্যর্থ'));onlineSpeak(t);
+  });
+}
 const _spk=speak;
 speak=function(t){
-  const noLocal=!NTTS&&!('speechSynthesis' in window);
-  if(S.voice==='online'||noLocal){onlineSpeak(t);return}
-  if(NTTS){nspeak(t,.7).catch(e=>{ST.nwhy=String((e&&e.message)||e||'');onlineSpeak(t)});return}
+  const hasG=!!gKey(),noLocal=!NTTS&&!('speechSynthesis' in window);
+  if(S.voice==='gemini'&&hasG){geminiThen(t);return}
+  if(S.voice==='online'||(noLocal&&!hasG)){onlineSpeak(t);return}
+  if(noLocal&&hasG){geminiThen(t);return}
+  if(NTTS){nspeak(t,.7).catch(e=>{ST.nwhy=String((e&&e.message)||e||'');hasG?geminiThen(t):onlineSpeak(t)});return}
   _spk(t);
 };
 
@@ -2752,18 +2798,20 @@ async function voiceDiag(){
     catch(e){L.push('ফোনের আরবি ভয়েস: যাচাই করা যায়নি ('+((e&&e.message)||'?')+')')}
     if(ST.nwhy)L.push('শেষ ফোন-ভয়েস ত্রুটি: '+ST.nwhy);
   }else L.push('ফোনের ভয়েস: '+('speechSynthesis' in window?'ব্রাউজারের ভয়েস আছে':'নেই'));
+  if(gKey()){try{gctx();await geminiPcm('بِسْمِ');L.push('Gemini ভয়েস (আপনার কী): চলছে ✓')}catch(e){L.push('Gemini ভয়েস: ব্যর্থ — '+((e&&e.why)||'?'))}}else L.push('Gemini ভয়েস: কী যুক্ত নেই (‘AI সংযুক্ত করুন’ পাতায় Gemini কী দিন)');
   for(let i=0;i<OSRC.length;i++){const r=await tryOnline(i,'بِسْمِ');L.push('অনলাইন উৎস '+bd(i+1)+': '+(r.ok?'চলছে ✓':'ব্যর্থ — '+r.why));try{OVA&&OVA.pause()}catch(e){}if(r.ok)break}
   return L;
 }
 
 const _vp2=viewProgress;
 viewProgress=function(){
-  const on=S.voice==='online',d=ST.vdiag;
+  const on=S.voice==='online'||S.voice==='gemini',d=ST.vdiag;
   return _vp2()+`<section class="blk"><div class="card"><b>উচ্চারণ শোনা</b>
   <p class="muted" style="margin:6px 0 10px">অক্ষর ও শব্দের উচ্চারণ কোথা থেকে শুনবেন। ফোনে আরবি ভয়েস না থাকলে অনলাইন ভয়েস বেছে নিন (ইন্টারনেট লাগবে)।</p>
   <div class="row" style="gap:8px;flex-wrap:wrap">
     <button type="button" class="btn ${on?'ghost':''}" data-act="voice" data-v="auto">অটো (ফোনের ভয়েস)</button>
     <button type="button" class="btn ${on?'':'ghost'}" data-act="voice" data-v="online">অনলাইন ভয়েস</button>
+    <button type="button" class="btn ${S.voice==='gemini'?'':'ghost'}" data-act="voice" data-v="gemini">Gemini ভয়েস (API কী)</button>
   </div>
   <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
     <button type="button" class="btn ghost sm" data-act="say" data-t="بِسْمِ ٱللَّهِ">পরীক্ষা: بِسْمِ ٱللَّهِ</button>
@@ -2772,7 +2820,7 @@ viewProgress=function(){
   ${d?`<ul class="mist" style="margin-top:10px" role="status">${d.map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>`:''}</div></section>`;
 };
 Object.assign(ACT,{
-  voice:t=>{S.voice=t.dataset.v;save();rerender();toast(S.voice==='online'?'অনলাইন ভয়েস চালু হয়েছে':'অটো ভয়েস চালু হয়েছে')},
+  voice:t=>{S.voice=t.dataset.v;save();rerender();toast(S.voice==='gemini'?(gKey()?'Gemini ভয়েস চালু হয়েছে':'আগে ‘AI সংযুক্ত করুন’ পাতায় Gemini কী দিন'):S.voice==='online'?'অনলাইন ভয়েস চালু হয়েছে':'অটো ভয়েস চালু হয়েছে')},
   vdiag:async()=>{ST.vdiag=['পরীক্ষা চলছে…'];rerender();ST.vdiag=await voiceDiag();rerender()}
 });
 
