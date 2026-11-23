@@ -38,15 +38,15 @@
 :root[data-theme="dark"]{
   --bg:#0f1a14; --bg2:#152219; --card:#1a2a20; --fg:#e8f0ea; --muted:#a6bbad; --line:#2d4236;
   --green:#6fd09b; --green-d:#58bb86; --green-l:#1f3a2b; --on-green:#0a1a11; --hero:#1d6a43; --chip:#24392c; color-scheme:dark}
-:root[data-age="kid"]{--scale:1.16;--r:22px}
+:root[data-age="kid"]{--scale:1.1;--r:22px}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font:400 calc(16px*var(--scale))/1.65 var(--f-ui);padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 calc(14.5px*var(--scale))/1.65 var(--f-ui);padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
 .wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #app{padding-block:20px 40px;outline:none}
 h1,h2,h3{font-family:var(--f-head);line-height:1.25;margin:0;text-wrap:balance}
-h1{font-size:1.9em;font-weight:800}h2{font-size:1.35em;font-weight:700}h3{font-size:1.08em;font-weight:700}
+h1{font-size:1.65em;font-weight:800}h2{font-size:1.22em;font-weight:700}h3{font-size:1.08em;font-weight:700}
 p{margin:0}
 a{color:var(--green)}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -76,7 +76,7 @@ nav.tabs{border-top:1px solid var(--line)}
   .tabs-in{justify-content:space-between;gap:0;overflow:visible}
   .tabs a{flex:1;flex-direction:column;gap:2px;padding:8px 2px;font-size:.72em;border-bottom:0;border-top:3px solid transparent;min-width:0;justify-content:center}
   .tabs a[aria-current="page"]{border-top-color:var(--green)}
-  h1{font-size:1.55em}
+  h1{font-size:1.4em}
 }
 /* buttons, chips, cards */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--green);background:var(--green);color:var(--on-green);border-radius:var(--r);padding:.6em 1.2em;font-weight:700;text-decoration:none}
@@ -95,7 +95,7 @@ section.blk>h2{margin-bottom:6px}
 .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));margin-top:12px}
 /* home */
 .hero{display:flex;align-items:center;gap:20px;flex-wrap:wrap;background:var(--green);color:var(--on-green);border-radius:calc(var(--r) + 6px);padding:22px}
-.hero .ar{font-size:3em;line-height:1.5}
+.hero .ar{font-size:2.6em;line-height:1.5}
 .hero p{opacity:.92}
 .hero .btn{background:var(--bg);color:var(--green-d);border-color:var(--bg)}
 .hero-t{flex:1 1 220px;min-width:0}
@@ -118,17 +118,17 @@ section.blk>h2{margin-bottom:6px}
 /* arabic cells */
 .cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;text-align:center;border:1.5px solid var(--line);background:var(--card);border-radius:var(--r);padding:8px 6px;min-width:0}
 .cell:hover,.tile:hover{border-color:var(--green)}
-.cell .ar{font-size:calc(1.9em*var(--fs))}
+.cell .ar{font-size:calc(1.7em*var(--fs))}
 .cell small{color:var(--muted);font-size:.82em;overflow-wrap:anywhere}
 .cell .pic{font-size:1.5em;line-height:1.2}
 .letters{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(5.4em,1fr))}
 .tile{display:flex;flex-direction:column;align-items:center;border:1.5px solid var(--line);background:var(--card);border-radius:var(--r);padding:8px 4px;min-width:0}
-.tile .tl{font-size:2.5em;line-height:1.5}
+.tile .tl{font-size:2.2em;line-height:1.5}
 .tile .tn{font-size:.82em;color:var(--muted);text-align:center}
 .cells{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(7.2em,1fr))}
 .cells.w{grid-template-columns:repeat(auto-fill,minmax(9.5em,1fr))}
 .rule{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));margin-top:12px}
-.rule .card .ar{font-size:2.4em;display:block;text-align:center}
+.rule .card .ar{font-size:2.1em;display:block;text-align:center}
 .rule .card h3{margin-bottom:4px}
 .rule .card p{color:var(--muted);font-size:.94em}
 .tblw{overflow-x:auto;margin-top:12px;border:1.5px solid var(--line);border-radius:var(--r)}
@@ -136,7 +136,7 @@ table{border-collapse:collapse;width:100%;min-width:420px}
 th,td{padding:6px 10px;text-align:center;border-bottom:1px solid var(--line)}
 th{font-size:.82em;color:var(--muted);background:var(--bg2);font-weight:600}
 tr:last-child td{border-bottom:0}
-td .ar{font-size:1.7em}
+td .ar{font-size:1.5em}
 td button{background:none;border:0;padding:0;line-height:1.2}
 td small{display:block;color:var(--muted);font-size:.78em}
 .eq{display:flex;align-items:center;flex-wrap:wrap;gap:8px;direction:ltr}
@@ -150,7 +150,7 @@ td small{display:block;color:var(--muted);font-size:.78em}
 .sheet-in{background:var(--bg);width:min(560px,100%);max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:18px max(18px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px))}
 @media(min-width:720px){.sheet{align-items:center}.sheet-in{border-radius:22px}}
 .sh-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.big{font-size:7.5em;line-height:1.3;text-align:center;color:var(--green)}
+.big{font-size:6em;line-height:1.3;text-align:center;color:var(--green)}
 .forms{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .forms div{border:1.5px solid var(--line);border-radius:var(--r);text-align:center;padding:4px}
 .forms .ar{font-size:2.3em;display:block;line-height:1.5}
@@ -165,23 +165,23 @@ td small{display:block;color:var(--muted);font-size:.78em}
 .bar{height:10px;background:var(--bg2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
 .bar i{display:block;height:100%;background:var(--green)}
 .qp{display:grid;place-items:center;min-height:9em;margin-block:14px;border:1.5px solid var(--line);border-radius:var(--r);padding:12px;text-align:center}
-.qp .ar{font-size:4.6em;line-height:1.5}
+.qp .ar{font-size:3.8em;line-height:1.5}
 .qp .qn{font-family:var(--f-head);font-size:2em;font-weight:700}
 .opts{display:grid;gap:10px;grid-template-columns:1fr 1fr}
 @media(max-width:420px){.opts{grid-template-columns:1fr}}
 .opt{border:2px solid var(--line);background:var(--card);border-radius:var(--r);padding:.7em;font-weight:600;font-size:1.1em}
-.opt .ar{font-size:2em;line-height:1.5;display:block}
+.opt .ar{font-size:1.8em;line-height:1.5;display:block}
 .opt:hover:not(:disabled){border-color:var(--green)}
 .opt.ok{background:var(--green);color:var(--on-green);border-color:var(--green)}
 .opt.bad{background:var(--fg);color:var(--bg);border-color:var(--fg);text-decoration:line-through}
 .stars{font-size:2.4em;letter-spacing:.1em;color:var(--green)}
 .flash{display:block;width:100%;min-height:15em;border:2px solid var(--green);background:var(--card);border-radius:calc(var(--r) + 6px);padding:20px;text-align:center}
-.flash .ar{font-size:5.5em;line-height:1.5}
+.flash .ar{font-size:4.4em;line-height:1.5}
 .flash .bk{font-size:1.4em;font-weight:600}
 .flash .bk small{display:block;font-size:.65em;color:var(--muted);font-weight:400}
 .flash .hint{color:var(--muted);font-size:.85em;margin-top:8px}
 .line{display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0}
-.line .ar{font-size:calc(2.1em*var(--fs));flex:1;text-align:right}
+.line .ar{font-size:calc(1.9em*var(--fs));flex:1;text-align:right}
 .line .tr{color:var(--muted);font-size:.9em;flex:0 0 38%;min-width:0}
 .wd{background:none;border:0;padding:0 2px;font-family:var(--f-ar);font-size:inherit;border-radius:6px}
 .wd:hover{background:var(--green-l)}
@@ -2246,7 +2246,7 @@ nav.tabs .tabs-in{display:flex;gap:4px;overflow:visible}
 .hero .m{font-size:.85em;opacity:.92}
 .hero .pb{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#0b5a33;font-weight:700;font-size:1.1em;border-radius:16px;min-height:56px;text-decoration:none}
 .hero .bar{height:8px;width:100%;display:block;background:rgba(255,255,255,.3)}.hero .bar i{background:#fff}
-.chip{display:inline-flex;align-items:center;gap:6px;background:var(--chip);color:var(--fg);border-radius:999px;padding:8px 14px;font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--chip);color:#fff;border-radius:999px;padding:8px 14px;font-weight:600}
 .goal{display:flex;align-items:center;gap:12px;min-height:48px;text-decoration:none;color:inherit}
 .goal .ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);flex:none;display:flex;align-items:center;justify-content:center;color:var(--on-green);font-size:14px}
 .goal.ok .ck{background:var(--green);border-color:var(--green)}
@@ -2315,11 +2315,11 @@ viewHome=function(){
   const wk=[];for(let d=-3;d<=3;d++){const dt=addD(new Date(),d),k=dk(dt),x=days.find(y=>y.key===k);
     wk.push(`<a href="#plan" class="${d===0?'tdy':x&&dayDone(x)?'dn':''}"><span>${WDS[dt.getDay()]}</span><b>${bd(dt.getDate())}</b></a>`)}
   const weak=(S.weak||[]).length;
-  return `<section class="blk"><div class="row sp" style="margin-bottom:12px"><div><div class="muted">আসসালামু আলাইকুম${nm}</div><h1 style="margin:0">আজকের পাঠ</h1></div><span class="chip">🔥 ${bd(S.streak.n||0)} দিন</span></div>
+  return `<section class="blk home2"><div class="row sp hd" style="margin-bottom:12px"><div><div class="muted">আসসালামু আলাইকুম${nm}</div><h1 style="margin:0">আজকের পাঠ</h1></div><span class="chip">🔥 ${bd(S.streak.n||0)} দিন</span></div>
   ${hero}
   <div class="card" style="margin-bottom:14px"><div class="row sp"><b>আজকের লক্ষ্য</b><small class="muted">${bd(gDone)}/${bd(goals.length)} সম্পন্ন</small></div>${goalsH}</div>
   <div class="card" style="margin-bottom:14px"><div class="row sp" style="margin-bottom:10px"><b>${MON[new Date().getMonth()]} মাস</b><a href="#plan" style="font-weight:600">পুরো সূচি দেখুন</a></div><div class="wk">${wk.join('')}</div></div>
-  <div class="row" style="gap:10px;align-items:stretch">
+  <div class="row" style="gap:10px;align-items:stretch;margin-bottom:14px">
     <a class="card" href="#practice-weak" data-act="qstart" style="flex:1;text-decoration:none;color:inherit"><small class="muted">পুনরাবৃত্তি</small><br><b>${weak?bd(weak)+'টি বিষয় ঝালাই করুন':'অনুশীলন শুরু করুন'}</b></a>
     <a class="card" href="#tutor" style="flex:1;text-decoration:none;color:inherit"><small class="muted">প্রশ্ন আছে?</small><br><b>ওস্তাদকে জিজ্ঞেস করুন</b></a>
   </div></section>`;
@@ -2327,7 +2327,7 @@ viewHome=function(){
 
 /* পাঠ ট্যাব: সব লেভেল + সাব-মেনু */
 const sub=(cur,items)=>`<nav class="subnav" aria-label="উপ-মেনু">${items.map(i=>`<a href="${i[0]}" ${i[2]===cur?'aria-current="page"':''}>${i[1]}</a>`).join('')}</nav>`;
-const LSUB=[['#lessons','পাঠ','lessons'],['#practice','অনুশীলন','practice'],['#cards','কার্ড','cards'],['#read','পড়ার ঘর','read']];
+const LSUB=[['#lessons','পাঠ','lessons'],['#book','বই','book'],['#practice','অনুশীলন','practice'],['#cards','কার্ড','cards'],['#read','পড়ার ঘর','read']];
 const MSUB=[['#progress','অগ্রগতি','progress'],['#plan','পরিকল্পনা ও সূচি','plan']];
 
 /* দোয়া ট্যাব */
@@ -2361,7 +2361,9 @@ render=function(keepScroll){
   let html;
   switch(a){
     case'level':html=viewLevel(+b);break;
-    case'lessons':html=sub('lessons',LSUB)+_levels();break;
+    case'lessons':html=sub('lessons',LSUB)+goalsCard()+_levels();break;
+    case'book':html=sub('book',LSUB)+viewBook(b);break;
+    case'goals':html=viewGoals();break;
     case'practice':html=sub('practice',LSUB)+viewPractice(b);break;
     case'cards':html=sub('cards',LSUB)+viewCards(b);break;
     case'read':html=sub('read',LSUB)+viewRead(b);break;
@@ -2374,7 +2376,7 @@ render=function(keepScroll){
     default:html=viewHome();
   }
   app.innerHTML=html;
-  const tab=({home:'home',level:'lessons',lessons:'lessons',practice:'lessons',cards:'lessons',read:'lessons',quran:'quran',dua:'dua',plan:'progress',progress:'progress'})[a]||'home';
+  const tab=({home:'home',level:'lessons',lessons:'lessons',book:'lessons',goals:'lessons',practice:'lessons',cards:'lessons',read:'lessons',quran:'quran',dua:'dua',plan:'progress',progress:'progress'})[a]||'home';
   document.querySelectorAll('[data-tab]').forEach(x=>{if(x.dataset.tab===tab)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});
   const fab=$('#askfab');if(fab)fab.hidden=(a==='tutor');
   document.body.classList.toggle('ai',a==='tutor');
@@ -2384,7 +2386,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.4.5';
+const APP_VERSION='1.5.1';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2726,6 +2728,148 @@ viewProgress=function(){
   <button type="button" class="btn ghost sm" style="margin-top:10px" data-act="say" data-t="بِسْمِ ٱللَّهِ">পরীক্ষা করুন: بِسْمِ ٱللَّهِ</button></div></section>`;
 };
 Object.assign(ACT,{voice:t=>{S.voice=t.dataset.v;save();rerender();toast(S.voice==='online'?'অনলাইন ভয়েস চালু হয়েছে':'অটো ভয়েস চালু হয়েছে')}});
+
+/* ---------- আপনি যা শিখবেন (কোর্সের লক্ষ্য) + বই-দৃশ্য ---------- */
+const OUT=[
+ ['২৯টি হরফের যেকোনোটি দেখামাত্র নাম বলতে পারবেন।',[1,6]],
+ ['১০টি মুশকিল হরফ বিশুদ্ধ আরবি লাহজায় আদায় করতে পারবেন।',[2]],
+ ['কুরআনের যেকোনো যুক্ত হরফ থেকে সঠিক হরফ শনাক্ত করতে পারবেন।',[4]],
+ ['পড়ার ৪-সূত্র ব্যবহার করে যেকোনো অপরিচিত শব্দ নিজে নিজে বানান করে পড়তে পারবেন।',[7]],
+ ['যবর, যের, পেশ, তানবীন, সাকিন, ক্বলক্বলাহ ও হামস সঠিকভাবে পড়তে পারবেন।',[3,5,10]],
+ ['তাশদীদ, ওয়াজিব গুন্নাহ ও ‘আল’ যুক্ত শব্দের নিয়ম স্বতঃস্ফূর্তভাবে প্রয়োগ করতে পারবেন।',[5,8,10]],
+ ['১, ৩ ও ৪ আলিফ মাদ্দের সঠিক পরিমাপ বজায় রাখতে পারবেন।',[11]],
+ ['নূন সাকিন, তানবীন ও মীম সাকিনের নিয়মগুলো প্রয়োগ করে সাবলীলভাবে তিলাওয়াত চালিয়ে যেতে পারবেন।',[9,10]],
+ ['হামযাতুল ওয়াসল, অনুচ্চারিত হরফ, ‘র’ ও ‘আল্লাহ’-এর লামের মতো সুক্ষ্ম জায়গায় হোঁচট খাবেন না।',[6,12]],
+ ['ওয়াক্‌ফ ও বিরতিচিহ্ন মেনে তিলাওয়াত করতে পারবেন ও সিজদায়ে তিলাওয়াতের আয়াত চিনতে পারবেন।',[13]],
+ ['সূরা আল-ফাতিহা ও সূরা আল-ইখলাস সহিহ-শুদ্ধভাবে তিলাওয়াত করতে পারবেন।',[16],'#quran-fatiha'],
+ ['মুসহাফ দেখে পড়ার আত্মবিশ্বাস পাবেন ও নাযেরা তিলাওয়াত অব্যাহত রাখার দিকনির্দেশনা পাবেন।',[15,16]]
+];
+S.goalself=S.goalself||{};
+const goalAuto=i=>OUT[i][1].every(n=>S.done[n]);
+const goalOk=i=>goalAuto(i)||!!S.goalself[i];
+const goalCount=()=>OUT.reduce((a,_,i)=>a+(goalOk(i)?1:0),0);
+
+window.goalsCard=function(){
+  const n=goalCount(),t=OUT.length;
+  return `<a class="card" href="#goals" style="display:block;text-decoration:none;color:inherit;margin-bottom:14px">
+  <div class="row sp"><b>আপনি যা শিখবেন</b><small class="muted">${bd(n)}/${bd(t)} অর্জিত</small></div>
+  <div class="bar" style="margin:8px 0"><i style="width:${n/t*100}%"></i></div>
+  <small class="muted">কোর্স শেষে ${bd(t)}টি দক্ষতা · সব লক্ষ্য দেখুন →</small></a>`;
+};
+
+window.viewGoals=function(){
+  const n=goalCount(),t=OUT.length;
+  const items=OUT.map((o,i)=>{
+    const ok=goalOk(i),auto=goalAuto(i);
+    const chips=o[1].map(l=>`<a href="#book-${l}" class="chip2${S.done[l]?' on':''}">পাঠ ${bd(l)}${S.done[l]?' ✓':''}</a>`).join('')+(o[2]?`<a href="${o[2]}" class="chip2">কুরআনে পড়ুন</a>`:'');
+    return `<li class="goal2${ok?' ok':''}"><div class="row" style="gap:12px;align-items:flex-start"><span class="ck2" aria-hidden="true">${ok?'✓':bd(i+1)}</span>
+    <div style="flex:1;min-width:0"><div>${o[0]}</div><div class="chips2">${chips}</div>
+    ${auto?'<small class="muted">সংশ্লিষ্ট পাঠ শেষ হওয়ায় অর্জিত</small>':`<button type="button" class="btn ghost sm" style="margin-top:8px" data-act="goalself" data-i="${i}">${S.goalself[i]?'পারি ✓ (বাতিল)':'আমি এটা পারি'}</button>`}</div></div></li>`}).join('');
+  return `<section class="blk"><a class="back" href="#lessons">← পাঠ</a>
+  <div class="eyebrow">কোর্সের লক্ষ্য</div><h1 style="margin:2px 0 6px">আপনি যা শিখবেন</h1>
+  <p class="lead">এই কোর্স শেষে আপনি যা পারবেন:</p>
+  <div class="card" style="margin:12px 0"><div class="row sp"><b>অগ্রগতি</b><span>${bd(n)}/${bd(t)}</span></div><div class="bar" style="margin-top:8px"><i style="width:${n/t*100}%"></i></div></div>
+  <ol class="goals2">${items}</ol>
+  <div class="card" style="margin-top:16px"><h2 style="margin:0 0 8px">নাযেরা তিলাওয়াত চালিয়ে যাওয়ার দিকনির্দেশনা</h2>
+  <ul class="mist"><li>প্রতিদিন নির্দিষ্ট সময়ে মুসহাফের অন্তত এক পৃষ্ঠা পড়ুন। পরিমাণের চেয়ে নিয়মিত হওয়া জরুরি।</li>
+  <li>প্রথমে ক্বারীর তিলাওয়াত শুনুন, তারপর নিজে পড়ে মিলিয়ে দেখুন।</li>
+  <li>দুর্বল জায়গা (মাদ্দ, গুন্নাহ, ওয়াক্‌ফ) চিহ্ন দিয়ে রাখুন এবং এই অ্যাপের সংশ্লিষ্ট পাঠ আবার দেখুন।</li>
+  <li>নিজের পড়া নিয়মিত একজন যোগ্য ক্বারী বা শিক্ষককে শোনান। অ্যাপ শিক্ষকের বিকল্প নয়।</li></ul></div>
+  </section>`;
+};
+Object.assign(ACT,{goalself:t=>{const i=t.dataset.i;if(S.goalself[i])delete S.goalself[i];else S.goalself[i]=1;save();rerender()}});
+
+/* ---- বই ---- */
+window.viewBook=function(b){
+  const N=LV.length;
+  if(!b){
+    const pos=Math.min(Math.max(+S.bookpos||1,1),N),doneN=Object.keys(S.done).filter(k=>S.done[k]).length;
+    let toc='';
+    for(let st=0;st<STAGE.length;st++){
+      const rows=LV.map((l,i)=>[l,i+1]).filter(x=>x[0].st===st);if(!rows.length)continue;
+      toc+=`<h2 class="bkpart">${['প্রথম','দ্বিতীয়','তৃতীয়','চতুর্থ'][st]} ভাগ · ${STAGE[st]}</h2>`+rows.map(([l,n])=>`<a class="bkrow" href="#book-${n}"><span class="bkn">${bd(n)}</span><span class="bkt"><b>${l.t}</b><small>${l.d}</small></span><span class="bkd">${S.done[n]?'✓':''}</span></a>`).join('');
+    }
+    return `<section class="blk"><div class="bkcover"><div class="bkg ar" lang="ar" dir="rtl">اقرأ</div><h1>আরবি শিখি</h1><p>পড়ার বই · ${bd(N)}টি অধ্যায়</p>
+    <div class="bar"><i style="width:${doneN/N*100}%"></i></div><small>${bd(doneN)}/${bd(N)} অধ্যায় সম্পন্ন</small>
+    <a class="btn" href="#book-${pos}" style="margin-top:14px;display:flex;justify-content:center;background:#fff;color:#0b5a33">${S.bookpos?'চালিয়ে যান · অধ্যায় '+bd(pos):'পড়া শুরু করুন'}</a></div>
+    <h2 style="margin:18px 0 6px">সূচিপত্র</h2>${toc}</section>`;
+  }
+  const n=Math.min(Math.max(+b||1,1),N);
+  S.bookpos=n;save();
+  let h=viewLevel(n);
+  h=h.replace(/<a class="back"[^>]*>[^<]*<\/a>/,'').replace(new RegExp('href="#level-'+(n+1)+'"','g'),'href="#book-'+(n+1)+'"');
+  const pn=n>1?`<a class="btn ghost" href="#book-${n-1}">← আগের অধ্যায়</a>`:'<span></span>';
+  const nx=n<N?`<a class="btn" href="#book-${n+1}">পরের অধ্যায় →</a>`:'<a class="btn" href="#book">সূচিতে ফিরি</a>';
+  const bar=`<div class="bkbar"><a href="#book" class="bkc">☰ সূচি</a><span>অধ্যায় ${bd(n)} / ${bd(N)}</span><span class="bkc2">${STAGE[LV[n-1].st]}</span></div>`;
+  return `<article class="bookpg" id="bookpg">${bar}${h}<div class="bknav">${pn}${nx}</div><p class="muted" style="text-align:center;margin:12px 0 0"><small>পাতা উল্টাতে ডানে-বামে সোয়াইপ করুন</small></p></article>`;
+};
+
+/* সোয়াইপ */
+(function(){
+  let x0=null,y0=null,t0=0;
+  document.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;t0=Date.now();},{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(x0==null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;
+    const h=location.hash||'';if(!/^#book-\d+$/.test(h))return;
+    if(e.target.closest&&e.target.closest('.subnav,input,textarea,canvas,.scrollx,pre'))return;
+    if(Math.abs(dx)<90||Math.abs(dy)>60||Date.now()-t0>700)return;
+    const n=+h.slice(6);const go=dx<0?n+1:n-1;       /* বামে টানলে পরের পাতা */
+    if(go>=1&&go<=LV.length)location.hash='#book-'+go;
+  },{passive:true});
+})();
+
+/* হোমে লক্ষ্য-কার্ড */
+const _vh7=viewHome;
+viewHome=function(){return _vh7().replace(/<\/section>\s*$/,goalsCard()+'</section>')};
+
+const _s7=document.createElement('style');
+_s7.textContent=`
+.chips2{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip2{padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);font-size:.85em;text-decoration:none;color:var(--fg);min-height:20px}
+.chip2.on{background:var(--green-l);border-color:var(--green);color:var(--green)}
+.goals2{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.goal2{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.goal2.ok{border-color:var(--green)}
+.ck2{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9em}
+.goal2.ok .ck2{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.bkcover{background:var(--hero);color:#fff;border-radius:22px;padding:24px 20px;text-align:center;display:flex;flex-direction:column;align-items:stretch;gap:8px;box-shadow:inset 6px 0 0 rgba(0,0,0,.25)}
+.bkcover h1{margin:0;color:#fff}.bkcover p{margin:0;opacity:.9}
+.bkcover .bar{background:rgba(255,255,255,.3);height:8px}.bkcover .bar i{background:#fff}
+.bkg{font-size:3.4em;line-height:1.4}
+.bkpart{margin:18px 0 6px;font-size:1em;color:var(--green)}
+.bkrow{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 4px;border-bottom:1px dashed var(--line);text-decoration:none;color:inherit}
+.bkn{flex:none;width:30px;text-align:center;font-weight:700;color:var(--green)}
+.bkt{flex:1;min-width:0;display:flex;flex-direction:column}.bkt small{color:var(--muted)}
+.bkd{flex:none;width:24px;color:var(--green);font-weight:700}
+.bookpg{background:var(--card);border:1px solid var(--line);border-radius:6px 18px 18px 6px;padding:14px 16px 18px;box-shadow:inset 8px 0 0 var(--green-l),0 4px 14px rgba(0,0,0,.08)}
+.bkbar{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.85em;color:var(--muted);padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.bkc{color:var(--green);font-weight:700;text-decoration:none;min-height:24px;display:inline-flex;align-items:center}
+.bknav{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+.bknav .btn{flex:1;text-align:center}
+`;
+document.head.appendChild(_s7);
+
+/* ---------- ট্যাবলেট/বড় পর্দা ---------- */
+const _s8=document.createElement('style');
+_s8.textContent=`
+@media(min-width:721px){
+  body{padding-bottom:48px}
+  .wrap{max-width:960px}
+  .bookpg{max-width:760px;margin-left:auto;margin-right:auto}
+  .bkcover{max-width:520px;margin-left:auto;margin-right:auto}
+  .quiz{max-width:640px}
+  .hd{padding-top:4px}
+}
+@media(min-width:900px){
+  .wrap{max-width:1120px}
+  .home2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+  .home2>.hd{grid-column:1/-1;margin-bottom:0!important}
+  .home2>*{margin-bottom:0!important}
+  .home2>a.card:last-child{grid-column:1/-1}
+}
+@media(min-width:1100px){.goals2{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+`;
+document.head.appendChild(_s8);
 
 prefs();render();
 if('speechSynthesis' in window)try{speechSynthesis.getVoices()}catch(e){}
