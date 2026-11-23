@@ -2387,7 +2387,7 @@ render=function(keepScroll){
 })();
 
 /* ---------- অ্যাপ আপডেট (স্বতন্ত্র অ্যাপ সংস্করণ) ---------- */
-const APP_VERSION='1.6.3';
+const APP_VERSION='1.6.4';
 const UPD={info:null,msg:'',busy:false,last:0};
 const verParts=v=>String(v).split('.').map(n=>parseInt(n,10)||0);
 const verGt=(a,b)=>{const x=verParts(a),y=verParts(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
@@ -2495,9 +2495,26 @@ const NATIVE=!!(window.Capacitor&&typeof window.Capacitor.isNativePlatform==='fu
 let NTTS=null;
 if(NATIVE){try{NTTS=window.Capacitor.registerPlugin('TextToSpeech')}catch(e){NTTS=null}}
 const TTS_HELP='আরবি ভয়েস চালানো যায়নি। ফোনের সেটিংস > ভাষা > Text-to-speech এ গিয়ে Google ইঞ্জিনের আরবি ভয়েস ডাউনলোড করুন।';
-function nspeak(t,rate){
-  const tryLang=i=>{const L=['ar-SA','ar','ar-EG'];return NTTS.speak({text:t,lang:L[i],rate:rate||.7,pitch:1,volume:1,category:'ambient'}).catch(e=>{if(i+1<L.length)return tryLang(i+1);throw e})};
-  return Promise.resolve(NTTS.stop()).catch(()=>{}).then(()=>tryLang(0));
+let AVC=null;
+async function arVoice(){
+  if(AVC!==null)return AVC||null;
+  AVC=false;
+  try{
+    const r=await NTTS.getSupportedVoices();const vs=(r&&r.voices)||[];
+    ST.nvoices=vs.filter(v=>/^ar/i.test(v.lang||'')).map(v=>v.lang+' '+(v.name||''));
+    let k=vs.findIndex(v=>/^ar/i.test(v.lang||'')&&v.localService);if(k<0)k=vs.findIndex(v=>/^ar/i.test(v.lang||''));
+    if(k>=0)AVC={i:k,lang:vs[k].lang};
+  }catch(e){ST.nvoices=[]}
+  return AVC||null;
+}
+async function nspeak(t,rate){
+  try{await NTTS.stop()}catch(e){}
+  const base={text:t,rate:rate||.7,pitch:1,volume:1,category:'ambient'};
+  const v=await arVoice();
+  if(v){try{return await NTTS.speak({...base,lang:v.lang,voice:v.i})}catch(e){}}
+  const L=['ar-SA','ar','ar-EG'];let err;
+  for(const l of L){try{return await NTTS.speak({...base,lang:l})}catch(e){err=e}}
+  throw err;
 }
 if(NTTS){
   speak=function(t){nspeak(t,.7).catch(()=>toast(TTS_HELP))};
@@ -2796,6 +2813,7 @@ async function voiceDiag(){
   if(NTTS){
     try{const r=await NTTS.isLanguageSupported({lang:'ar-SA'});L.push('ফোনের আরবি ভয়েস: '+(r&&r.supported?'আছে':'নেই — Settings → Text-to-speech-এ Google ইঞ্জিন ও Arabic ভয়েস ডাউনলোড করুন'))}
     catch(e){L.push('ফোনের আরবি ভয়েস: যাচাই করা যায়নি ('+((e&&e.message)||'?')+')')}
+    try{await arVoice()}catch(e){}L.push('ফোনে পাওয়া আরবি ভয়েস: '+((ST.nvoices&&ST.nvoices.length)?ST.nvoices.join(', '):'একটিও নয়'));
     if(ST.nwhy)L.push('শেষ ফোন-ভয়েস ত্রুটি: '+ST.nwhy);
   }else L.push('ফোনের ভয়েস: '+('speechSynthesis' in window?'ব্রাউজারের ভয়েস আছে':'নেই'));
   if(gKey()){try{gctx();await geminiPcm('بِسْمِ');L.push('Gemini ভয়েস (আপনার কী): চলছে ✓')}catch(e){L.push('Gemini ভয়েস: ব্যর্থ — '+((e&&e.why)||'?'))}}else L.push('Gemini ভয়েস: কী যুক্ত নেই (‘AI সংযুক্ত করুন’ পাতায় Gemini কী দিন)');
